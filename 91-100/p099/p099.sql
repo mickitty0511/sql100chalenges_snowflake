@@ -1,0 +1,36 @@
+drop stage if exists sql100.public.csv_stage;
+CREATE OR REPLACE STAGE sql100.public.csv_stage
+    FILE_FORMAT = (
+        TYPE = 'CSV'
+        FIELD_DELIMITER = '\t'
+        FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+        COMPRESSION = 'NONE'
+    );
+
+COPY INTO @sql100.public.csv_stage/p099_product_category.csv
+FROM (
+    select
+        p.product_cd
+        , p.category_major_cd
+        , c.category_major_name
+        , p.category_medium_cd
+        , c.category_medium_name
+        , p.category_small_cd
+        , c.category_small_name
+        , p.unit_price
+        , p.unit_cost
+    from sql100.public.product p
+    inner join sql100.public.category c
+    on p.category_small_cd = c.category_small_cd
+)
+FILE_FORMAT = (
+    TYPE = 'CSV'
+    FIELD_DELIMITER = '\t'
+    FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+    COMPRESSION = 'NONE'
+)
+HEADER = TRUE
+OVERWRITE = TRUE
+SINGLE = TRUE;
+
+SELECT $1, $2, $3 FROM @sql100.public.csv_stage/p099_product_category.csv;
